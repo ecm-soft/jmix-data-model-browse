@@ -1,0 +1,57 @@
+name: CI pipeline
+
+on:
+  push:
+    branches: [master, TEST]
+  pull_request:
+    branches: [master, TEST]
+    
+permissions:
+  checks: write
+  contents: read
+  
+jobs:
+  ci:
+    name: CI pipeline
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: TestProjectDTB
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: root
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: localhost
+      POSTGRES_DB: TestProjectDTB
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: "liberica"
+          java-version: '11'
+
+      - name: Run tests
+        run: ./gradlew :datamodelbrowseaddon-starter:test :datamodelbrowseaddon:test
+
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v5
+        if: success() || failure()
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'

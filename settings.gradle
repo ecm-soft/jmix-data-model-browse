@@ -1,0 +1,8 @@
+rootProject.name = 'DataModelBrowseAddon'
+
+include 'datamodelbrowseaddon'
+include 'datamodelbrowseaddon-starter'
+
+rootProject.children.each { p1 ->
+    p1.buildFileName = "${p1.name}.gradle"
+}

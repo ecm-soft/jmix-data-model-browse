@@ -1,0 +1,68 @@
+buildscript {
+    repositories {
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'io.jmix.gradle:jmix-gradle-plugin:1.7.1'
+    }
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+    apply plugin: 'io.jmix'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven {
+            url 'https://global.repo.jmix.io/repository/public'
+        }
+        maven {
+            url = 'https://nexus.jmix.io/repository/public'
+        }
+    }
+
+    jmix {
+        bomVersion = '1.7.1'
+        projectId = 'dmb'
+    }
+
+    group = 'ru.cs_consult'
+
+    def props = new Properties()
+    buildFile.withInputStream { props.load(it) }
+    def subArchivesBaseName = props.getProperty('archivesBaseName')
+    def archName = subArchivesBaseName.substring(1, subArchivesBaseName.length() - 1)
+
+    java {
+        withSourcesJar()
+    }
+
+    artifacts {
+        archives sourcesJar
+    }
+
+    publishing {
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/" + System.getenv("GITHUB_REPOSITORY"))
+                credentials {
+                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                }
+            }
+        }
+        publications {
+            javaMaven(MavenPublication) {
+                artifactId = archName
+                from components.java
+            }
+        }
+    }
+
+    tasks.withType(GenerateModuleMetadata) {
+        enabled = false
+    }
+}

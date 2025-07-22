@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Модель данных</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+</head>
+
+<style>
+    h1{
+        font-size: 1.75em;
+    }
+
+    table {
+        background-color:#eee;
+    }
+
+    table td {
+        padding: 4px;
+        background-color:white;
+        vertical-align: top;
+    }
+
+    table .propertyName{
+        font-weight: bold;
+        padding-top: 10px;
+    }
+</style>
+
+<#macro printFetchPlan fetchPlan>
+    <ul>
+        <#list fetchPlan.properties as property>
+            <li>${property.name}</li>
+            <#if property.fetchPlan ??>
+                <@printFetchPlan fetchPlan = property.fetchPlan/>
+            </#if>
+        </#list>
+    </ul>
+</#macro>
+
+<body style="margin: 40px;">
+
+<h1>Описание модели</h1>
+
+<h2>Доступные базовые типы:</h2>
+<ul>
+    <#list availableTypes as type>
+        <li>${type}</li>
+    </#list>
+</ul>
+
+<h2>Известные объекты:</h2>
+<ul>
+    <#list knownEntities as entity>
+        <li><a href="#${entity.name}">${entity.name} - ${entity.description}</a></li>
+    </#list>
+</ul>
+
+
+<#list knownEntities as entity>
+    <a name="${entity.name}"></a>
+    <h2>${entity.name}</h2>
+    <p>Таблица: ${entity.tableName}</p>
+    <#if entity.parent ??>
+        ${entity.parent}
+    </#if>
+    <p>${entity.description}</p>
+    <#if entity.comment ??>
+        Комментарий: ${entity.Nomment}
+    </#if>
+    <h3>Поля</h3>
+    <table border="1" bordercolor="lightgray" cellspacing="0" cellpadding="0" width="90%">
+        <col width="15%">
+        <col width="20%">
+        <col width="15%">
+        <col width="20%">
+        <col width="5%">
+        <col width="25%">
+        <tr>
+            <th>Свойство</th>
+            <th>Столбец</th>
+            <th>Тип </th>
+            <th>Описание</th>
+            <th>Тип связи</th>
+            <th>Аннотации</th>
+        </tr>
+    <#list entity.properties as property>
+            <tr>
+                    <td class="propertyName">${property.name}</td>
+                    <td>${property.columnName}</td>
+                    <td>${property.enum!property.javaType}</td>
+                    <td>${property.description}</td>
+                    <td><i>${property.cardinality}</i></td>
+                    <td>
+                        <#list property.annotations as ann>
+                            ${ann}<#if ann_has_next>;&nbsp;</#if>
+                        </#list>
+                    </td>
+            </tr>
+    </#list>
+    </table>
+
+    <#if entity.fetchPlans ??>
+    <h3>Фетч-планы</h3>
+    <ul>
+    <#list entity.fetchPlans as afetchplan>
+          <li><b>${afetchplan.name}</b></li>
+           <@printFetchPlan fetchPlan=afetchplan/>
+    </#list>
+    </ul>
+    </#if>
+    <p>&nbsp;</p>
+</#list>
+
+<h2>Enumerations:</h2>
+<ul>
+    <#list enums as enum>
+        <li><a href="#${enum.name}">${enum.name}</a></li>
+    </#list>
+</ul>
+
+    <#list enums as enum>
+        <a name="${enum.name}"></a>
+        <h2>${enum.name}</h2>
+        <h3>Значения</h3>
+        <table border="1" bordercolor="lightgray" cellspacing="0" cellpadding="0" width="50%">
+            <col width="30%">
+            <col width="70%">
+            <tr>
+                <th>Id</th>
+                <th>Value</th>
+            </tr>
+            <#list enum.values as value>
+                <tr>
+                    <#if value.idObj.id?? && value.idObj.id?is_boolean>
+                    <td class="propertyName">${value.idObj.id?c}</td>
+                    <#else>
+                    <td class="propertyName">${value.idObj.id!}</td>
+                    </#if>
+                    <td>${value.name}</td>
+                </tr>
+            </#list>
+        </table>
+    </#list>
+
+</body>
+</html>
