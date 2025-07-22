@@ -30,11 +30,6 @@ subprojects {
 
     group = 'ru.cs_consult'
 
-    def props = new Properties()
-    buildFile.withInputStream { props.load(it) }
-    def subArchivesBaseName = props.getProperty('archivesBaseName')
-    def archName = subArchivesBaseName.substring(1, subArchivesBaseName.length() - 1)
-
     java {
         withSourcesJar()
     }
@@ -56,7 +51,9 @@ subprojects {
         }
         publications {
             javaMaven(MavenPublication) {
-                artifactId = archName
+                groupId = group
+                artifactId = project.archivesBaseName
+                version = project.version
                 from components.java
             }
         }
